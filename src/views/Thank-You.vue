@@ -39,7 +39,9 @@
 const db = require('../firebaseConfig.js')
 
 export default {
+  name: 'ThankYou',
   created () {
+    /* Get data passed in from form page */
     this.existing = this.$route.params
     if (this.existing.time) {
       this.displayAppointment = true
@@ -57,6 +59,7 @@ export default {
     }
   },
   methods: {
+    /* Add rating to user profile in database */
     updateRating () {
       db.appointments.doc(this.existing.key).update({
         rating: this.rating

@@ -21,6 +21,7 @@ const db = require('../firebaseConfig.js')
 export default {
   name: 'Home',
   created () {
+    /* Get appointments from database and store. */
     this.ref.onSnapshot((querySnapshot) => {
       this.appintments = []
       querySnapshot.forEach((doc) => {
@@ -56,6 +57,7 @@ export default {
     }
   },
   methods: {
+    /* Generates random key for user */
     getKey (length) {
       var result = ''
       var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -66,17 +68,20 @@ export default {
       this.userKey = result
       return result
     },
+    /* Sends email via EmailJS to user with unique key */
     sendEmail () {
       this.emailParams.message += this.userKey
       emailjs.send('contact-service', 'template_appointment', this.emailParams, 'user_7q5WgpVx96QQVsQEccy8S')
         .then((result) => {
           alert('You have been sent an email with next steps.')
-          location.reload()
-        }, (error) => {
+          this.$router.push({ path: 'thank-you' })
+        })
+        .catch((error) => {
           alert('Could not send to email address provided. ERROR: ' + error)
           location.reload()
         })
     },
+    /* Adds user into database with unique key */
     addUser () {
       this.getKey(5)
       db.appointments.doc(this.userKey).set({
@@ -85,6 +90,7 @@ export default {
       })
       this.sendEmail()
     },
+    /* Checks to see if the user already has an appointment or confirmation email */
     checkAppointments () {
       this.appointments.forEach((appointment, index) => {
         if ((appointment.time) && (this.emailParams.to_email === appointment.email)) {

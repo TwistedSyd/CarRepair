@@ -32,6 +32,7 @@ import emailjs from 'emailjs-com'
 const db = require('../firebaseConfig.js')
 
 export default {
+  name: 'Form',
   data () {
     return {
       rating: 0,
@@ -58,12 +59,13 @@ export default {
       },
       emailParamsShop: {
         from_name: 'Appointments',
-        to_email: 'konczsydney@gmail.com',
+        to_email: 'repairs@example.com',
         message: ''
       }
     }
   },
   created () {
+    /* When the page is loaded check if the URL is valid (has unique key in database) */
     var getURL = window.location.href
     if (!getURL.match(/http:\/\/localhost:8080\/#\/form\?key=.{5}$/)) {
       alert('URL invalid, please use the link found in your email.')
@@ -73,6 +75,7 @@ export default {
       var key = urlParams.get('http://localhost:8080/#/form?key')
       this.clientData.key = key
       var exists = db.appointments.doc(this.clientData.key)
+      /* Take unique user key and get appointment from database */
       exists.get()
         .then((doc) => {
           if (doc.exists) {
@@ -90,6 +93,7 @@ export default {
               if (doc.data().rating) {
                 this.clientData.rating = doc.data().rating
               }
+              /* Take user to thank you page and display appointment information */
               this.$router.push({ name: 'Thank You', params: this.clientData })
             }
           } else {
@@ -101,6 +105,7 @@ export default {
         .catch((error) => {
           alert('Error getting document:', error)
         })
+        /* Get user IP address */
       fetch('https://api.ipify.org?format=json')
         .then(async response => {
           const data = await response.json()
@@ -110,38 +115,45 @@ export default {
           }
           this.clientData.IP = data.ip
         })
-        .catch(error => {
+        .catch((error) => {
           alert('There was an error getting the IP address', error)
         })
     }
   },
   methods: {
+    /* Sends 'The Repair Shop' and the user a confirmation email with form data */
     sendEmail () {
       emailjs.send('contact-service', 'template_confirm', this.emailParamsCustomer, 'user_7q5WgpVx96QQVsQEccy8S')
         .then((result) => {
           alert('You have been sent an email with your appointment information.')
           this.$router.push('thank-you')
-        }, (error) => {
+        })
+        .catch((error) => {
           alert('Could not send to email to confirm appointment. ERROR: ' + error)
           this.$router.push('/')
         })
       emailjs.send('contact-service', 'template_confirm', this.emailParamsShop, 'user_7q5WgpVx96QQVsQEccy8S')
         .then((result) => {
           console.log('Shop email sent.')
-        }, (error) => {
+        })
+        .catch((error) => {
           alert('Could not send to email to shop. ERROR: ' + error)
         })
     },
+    /* Takes clientData object and creates email message */
     getMessage () {
       Object.keys(this.clientData).forEach((key) => {
-        this.emailParamsShop.message += key + ': ' + this.clientData[key] + '\n'
-        if (key !== 'IP' && key !== 'key') {
+        if (key !== 'rating') {
+          this.emailParamsShop.message += key + ': ' + this.clientData[key] + '\n'
+        }
+        if (key !== 'IP' && key !== 'key' && key !== 'rating') {
           this.emailParamsCustomer.message += key + ': ' + this.clientData[key] + '\n'
         }
       })
       this.emailParamsCustomer.to_email = this.clientData.email
       this.sendEmail()
     },
+    /* Adds appointment information to database */
     makeAppointment () {
       db.appointments.doc(this.clientData.key).update({
         email: this.clientData.email,
