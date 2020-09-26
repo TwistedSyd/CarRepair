@@ -28,5 +28,5 @@ npm test
 
 I'm not yet familiar with testing frameworks, such as Jest and Mocha. I'm currently learning more about testing frameworks and would like more exposure to them. I've included a basic unit test for the Home component to show my current understanding of how testing works. 
 
-Database: Firebase/Firestore
+Database: Firebase/Firestore  
 Email Service: EmailJS
